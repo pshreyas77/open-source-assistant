@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenSource Contribution Assistant</title>
+    <meta name="color-scheme" content="light dark">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { inter: ['Inter', 'ui-sans-serif', 'system-ui'] },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+                            400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+                            800: '#3730a3', 900: '#312e81'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body class="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100 font-inter">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:text-black focus:px-3 focus:py-2 focus:rounded">Skip to content</a>
+    <div class="flex min-h-screen">
+        <aside class="hidden lg:flex w-80 flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white/60 dark:bg-neutral-900/60 backdrop-blur supports-[backdrop-filter]:bg-white/40 supports-[backdrop-filter]:dark:bg-neutral-900/40">
+            <div class="px-6 py-5 border-b border-neutral-200 dark:border-neutral-800">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-lg bg-brand-600 text-white grid place-items-center shadow-sm" aria-hidden="true">
+                        <i class="fab fa-github"></i>
+                    </div>
+                    <h1 class="text-lg font-semibold">OpenSource Contribution Assistant</h1>
+                </div>
+            </div>
+            <div class="p-6 overflow-y-auto grow">
+                <h2 class="text-sm uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Getting Started</h2>
+                <div class="mt-4 space-y-3">
+                    <button class="suggestion-btn w-full text-left px-4 py-3 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 transition" aria-label="Find beginner-friendly repositories">Find beginner-friendly repositories</button>
+                    <button class="suggestion-btn w-full text-left px-4 py-3 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 transition" aria-label="How to contribute to open source?">How to contribute to open source?</button>
+                    <button class="suggestion-btn w-full text-left px-4 py-3 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 transition" aria-label="Find Python projects to contribute to">Find Python projects to contribute to</button>
+                    <button class="suggestion-btn w-full text-left px-4 py-3 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 transition" aria-label="Show good first issues in tensorflow/tensorflow">Show good first issues in tensorflow/tensorflow</button>
+                    <button class="suggestion-btn w-full text-left px-4 py-3 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 transition" aria-label="How to create a pull request?">How to create a pull request?</button>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-neutral-200 dark:border-neutral-800 text-sm text-neutral-500 dark:text-neutral-400">Powered by <strong class="font-semibold">LangChain</strong> &amp; <strong class="font-semibold">Gemini</strong></div>
+        </aside>
+
+        <div class="flex-1 flex flex-col">
+            <header class="sticky top-0 z-10 bg-white/70 dark:bg-neutral-900/70 backdrop-blur border-b border-neutral-200 dark:border-neutral-800">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div class="flex items-center gap-3 lg:hidden">
+                        <div class="h-10 w-10 rounded-lg bg-brand-600 text-white grid place-items-center shadow-sm" aria-hidden="true">
+                            <i class="fab fa-github"></i>
+                        </div>
+                        <h1 class="text-base font-semibold">OpenSource Assistant</h1>
+                    </div>
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-2">
+                        <button id="reset-btn" class="inline-flex items-center gap-2 rounded-md border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition" aria-label="Reset Chat">
+                            <i class="fas fa-sync-alt"></i>
+                            <span class="hidden sm:inline">Reset</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main id="main" class="flex-1">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6 grid lg:grid-cols-[1fr] gap-6">
+                    <section class="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex flex-col h-[calc(100vh-8rem)]">
+                        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4" role="log" aria-live="polite">
+                            <div class="flex items-start gap-3">
+                                <div class="h-9 w-9 rounded-md bg-brand-600 text-white grid place-items-center flex-shrink-0" aria-hidden="true">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="max-w-prose bg-neutral-100 dark:bg-neutral-800 rounded-lg px-4 py-3">
+                                    <p class="leading-relaxed">Hello! I'm your OpenSource Contribution Assistant. I can help you find beginner-friendly projects, explain how to contribute, and guide you through your open source journey. What would you like to know?</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 sm:p-4 border-t border-neutral-200 dark:border-neutral-800">
+                            <div class="relative flex items-end gap-2">
+                                <label for="user-input" class="sr-only">Your message</label>
+                                <textarea id="user-input" rows="1" placeholder="Ask about open source projects, contribution guides, finding issues..." class="w-full resize-none rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-3 pr-12 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500" aria-label="Message input"></textarea>
+                                <button id="send-btn" class="absolute right-2 bottom-2 inline-flex items-center justify-center h-9 w-10 rounded-md bg-brand-600 hover:bg-brand-700 text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500" aria-label="Send message">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="loading-overlay" class="fixed inset-0 hidden items-center justify-center bg-white/70 dark:bg-black/60 backdrop-blur-sm">
+        <div class="flex items-center gap-3 text-neutral-700 dark:text-neutral-200 text-sm font-medium bg-white/90 dark:bg-neutral-900/90 px-4 py-3 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow">
+            <i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i>
+            <span>Getting information from Sources...</span>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
