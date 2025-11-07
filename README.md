@@ -118,12 +118,7 @@ The application will start on `http://localhost:5000`
 
 Navigate to `http://localhost:5000` in your browser and start asking questions:
 
-**Example Queries:**
-- "Find me beginner-friendly Python projects for web development"
-- "What are the trending machine learning repositories this week?"
-- "Show me issues in tensorflow/tensorflow for beginners"
-- "How do I contribute to the React project?"
-- "Give me insights about the kubernetes/kubernetes repository"
+
 
 ### API Endpoints
 
