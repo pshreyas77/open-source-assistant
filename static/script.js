@@ -1,257 +1,230 @@
-document.addEventListener('DOMContentLoaded', function() {
-
+document.addEventListener('DOMContentLoaded', function () {
     const chatMessages = document.getElementById('chat-messages');
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-btn');
     const resetButton = document.getElementById('reset-btn');
-    const loadingOverlay = document.getElementById('loading-overlay');
-    const suggestionButtons = document.querySelectorAll('.suggestion-btn');
+    const themeToggle = document.getElementById('theme-toggle');
+    const chatViewport = document.getElementById('chat-viewport');
 
-    userInput.addEventListener('input', function() {
+    // Theme Handling
+    let isDark = localStorage.getItem('theme') === 'dark';
+    applyTheme(isDark);
+
+    themeToggle.addEventListener('click', () => {
+        isDark = !isDark;
+        applyTheme(isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    function applyTheme(dark) {
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        themeToggle.innerHTML = dark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    }
+
+    // Auto-resize textarea
+    userInput.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
-
-        if (this.value === '') {
-            this.style.height = 'auto';
-        }
+        if (this.value === '') this.style.height = '56px';
     });
 
     let conversationId = null;
 
     function initializeConversation() {
-        showLoading();
-
         fetch('/start-conversation', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            hideLoading();
-            if (data.status === "success") {
-                conversationId = data.conversation_id;
-                console.log("Conversation started with ID:", conversationId);
-
-                //addMessage('assistant', 'Hello! I\'m your Open Source Contribution Assistant. How can I help you today?');
-            } else {
-                throw new Error(data.message || 'Failed to start conversation');
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error starting conversation:', error);
-            addMessage('assistant', 'Sorry, there was an error connecting to the server. Please try refreshing the page.');
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    conversationId = data.conversation_id;
+                }
+            })
+            .catch(console.error);
     }
 
     function resetConversation() {
-        showLoading();
+        const originalIcon = resetButton.innerHTML;
+        resetButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-        fetch('/api/reset', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.status === "success") {
-
-                chatMessages.innerHTML = '';
-
-                initializeConversation();
-            } else {
-                throw new Error(data.message || 'Failed to reset conversation');
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error resetting conversation:', error);
-            addMessage('assistant', 'Error resetting conversation: ' + error.message);
-        });
+        fetch('/api/reset', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    chatMessages.innerHTML = `
+                    <div class="message-row ai">
+                        <div class="avatar ai"><i class="fas fa-robot"></i></div>
+                        <div class="message-bubble">
+                            <p>Chat reset. How can I help you now?</p>
+                        </div>
+                    </div>`;
+                    initializeConversation();
+                }
+            })
+            .finally(() => {
+                resetButton.innerHTML = originalIcon;
+            });
     }
 
-    function addMessage(sender, text) {
+    function addMessage(sender, text, contextData = null) {
         const row = document.createElement('div');
-        row.className = 'flex items-start gap-3';
+        row.className = `message-row ${sender === 'user' ? 'user' : 'ai'}`;
 
         const avatar = document.createElement('div');
-        avatar.className = `h-9 w-9 rounded-md grid place-items-center flex-shrink-0 ${sender === 'user' ? 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200' : 'bg-brand-600 text-white'}`;
-        const icon = document.createElement('i');
-        icon.className = sender === 'user' ? 'fas fa-user' : 'fas fa-robot';
-        avatar.appendChild(icon);
+        avatar.className = `avatar ${sender === 'user' ? 'user' : 'ai'}`;
+        avatar.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
 
-        const content = document.createElement('div');
-        content.className = `max-w-prose rounded-lg px-4 py-3 ${sender === 'user' ? 'bg-neutral-100 dark:bg-neutral-800' : 'bg-neutral-100 dark:bg-neutral-800'}`;
-        content.innerHTML = processMarkdown(text);
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+
+        // Parse Markdown
+        bubble.innerHTML = marked.parse(text);
+
+        // Render Rich Cards if available
+        if (contextData && contextData.repositories && contextData.repositories.length > 0) {
+            const grid = document.createElement('div');
+            grid.className = 'repo-grid';
+
+            contextData.repositories.slice(0, 4).forEach(repo => {
+                const card = document.createElement('a');
+                card.className = 'repo-card';
+                card.href = repo.url;
+                card.target = '_blank';
+                card.innerHTML = `
+                    <div class="repo-header">
+                        <div class="repo-name">${repo.name}</div>
+                        <div class="repo-stars"><i class="fas fa-star"></i> ${repo.stars}</div>
+                    </div>
+                    <div class="repo-desc">${repo.description || 'No description available.'}</div>
+                    <div class="repo-meta">
+                        <span><i class="fas fa-circle" style="font-size: 8px; color: ${getLangColor(repo.language)}"></i> ${repo.language || 'Unknown'}</span>
+                        <span><i class="fas fa-exclamation-circle"></i> ${repo.open_issues_count} issues</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            bubble.appendChild(grid);
+        }
+
+        // Make links open in new tab
+        bubble.querySelectorAll('a').forEach(a => {
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+        });
 
         row.appendChild(avatar);
-        row.appendChild(content);
+        row.appendChild(bubble);
         chatMessages.appendChild(row);
 
-        styleMarkdown(content);
-        addSyntaxHighlighting();
-        makeLinksExternal();
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        chatViewport.scrollTop = chatViewport.scrollHeight;
     }
 
-    function processMarkdown(text) {
-        return marked.parse(text);
+    function getLangColor(lang) {
+        const colors = {
+            'Python': '#3572A5', 'JavaScript': '#f1e05a', 'TypeScript': '#2b7489',
+            'Java': '#b07219', 'Go': '#00ADD8', 'Rust': '#dea584', 'C++': '#f34b7d'
+        };
+        return colors[lang] || '#8b949e';
     }
 
-    function escapeHTML(text) {
-        return text
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
+    function showLoading() {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'loading-indicator';
+        loadingDiv.className = 'message-row ai';
+        loadingDiv.innerHTML = `
+            <div class="avatar ai"><i class="fas fa-robot"></i></div>
+            <div class="message-bubble">
+                <div style="display: flex; gap: 4px; align-items: center; color: var(--text-tertiary);">
+                    <i class="fas fa-circle-notch fa-spin"></i> Thinking...
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(loadingDiv);
+        chatViewport.scrollTop = chatViewport.scrollHeight;
     }
 
-    function addSyntaxHighlighting() {
-        const pres = document.querySelectorAll('pre');
-        pres.forEach(pre => {
-            pre.classList.add('bg-neutral-900','text-neutral-100','rounded-md','p-4','overflow-x-auto','text-sm');
-        });
-        const codes = document.querySelectorAll('pre code, code');
-        codes.forEach(code => {
-            code.classList.add('font-mono');
-        });
+    function hideLoading() {
+        const loadingDiv = document.getElementById('loading-indicator');
+        if (loadingDiv) loadingDiv.remove();
     }
 
-    function makeLinksExternal() {
-        const links = document.querySelectorAll('.message-content a');
-        links.forEach(link => {
-            link.setAttribute('target', '_blank');
-            link.setAttribute('rel', 'noopener noreferrer');
-        });
-    }
-
-    function showLoading() { loadingOverlay.classList.remove('hidden'); }
-
-    function hideLoading() { loadingOverlay.classList.add('hidden'); }
-
-    function styleMarkdown(root) {
-        // Headings
-        root.querySelectorAll('h1').forEach(el => el.classList.add('text-2xl','font-semibold','mt-2','mb-3'));
-        root.querySelectorAll('h2').forEach(el => el.classList.add('text-xl','font-semibold','mt-2','mb-2'));
-        root.querySelectorAll('h3').forEach(el => el.classList.add('text-lg','font-semibold','mt-2','mb-2'));
-        // Paragraphs
-        root.querySelectorAll('p').forEach(el => el.classList.add('leading-relaxed','my-2'));
-        // Lists
-        root.querySelectorAll('ul').forEach(el => el.classList.add('list-disc','ml-6','my-2','space-y-1'));
-        root.querySelectorAll('ol').forEach(el => el.classList.add('list-decimal','ml-6','my-2','space-y-1'));
-        // Links
-        root.querySelectorAll('a').forEach(el => el.classList.add('text-brand-600','hover:underline'));
-        // Blockquotes
-        root.querySelectorAll('blockquote').forEach(el => el.classList.add('border-l-4','border-brand-500','pl-4','italic','my-3','text-neutral-600','dark:text-neutral-300'));
-        // Tables
-        root.querySelectorAll('table').forEach(table => {
-            table.classList.add('w-full','text-left','text-sm','my-3','border-collapse');
-            table.querySelectorAll('th').forEach(th => th.classList.add('border','border-neutral-200','dark:border-neutral-800','px-3','py-2','bg-neutral-100','dark:bg-neutral-800','font-semibold'));
-            table.querySelectorAll('td').forEach(td => td.classList.add('border','border-neutral-200','dark:border-neutral-800','px-3','py-2'));
-        });
-        // Inline code
-        root.querySelectorAll('p > code, li > code').forEach(el => el.classList.add('bg-neutral-200','dark:bg-neutral-800','px-1.5','py-0.5','rounded','text-sm'));
-        // Horizontal rule
-        root.querySelectorAll('hr').forEach(el => el.classList.add('my-4','border-neutral-200','dark:border-neutral-800'));
-    }
-
-    function sendMessage() {
+    window.sendMessage = function () {
         const message = userInput.value.trim();
-
         if (!message) return;
 
         userInput.value = '';
-        userInput.style.height = 'auto';
-
-        addMessage('user', message);
-
+        userInput.style.height = '56px';
         userInput.disabled = true;
         sendButton.disabled = true;
 
+        addMessage('user', message);
         showLoading();
 
         if (!conversationId) {
             initializeConversation();
-
-            setTimeout(() => {
-                getChatResponse(message);
-            }, 1000);
+            setTimeout(() => sendRequest(message), 500);
         } else {
-            getChatResponse(message);
+            sendRequest(message);
         }
-    }
+    };
 
-    function getChatResponse(message) {
-        fetch('/api/chat', {  
+    function sendRequest(message) {
+        fetch('/api/chat', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 conversation_id: conversationId,
                 question: message,
                 use_realtime: true
             })
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            hideLoading();
-
-            if (data.error) {
-                throw new Error(data.error);
-            }
-
-            addMessage('assistant', data.answer);
-
-            userInput.disabled = false;
-            sendButton.disabled = false;
-            userInput.focus();
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            addMessage('assistant', 'Sorry, there was an error: ' + error.message);
-            userInput.disabled = false;
-            sendButton.disabled = false;
-        });
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.error) {
+                    addMessage('ai', `**Error:** ${data.error}`);
+                } else {
+                    // Pass context_data to addMessage to render cards
+                    addMessage('ai', data.answer, data.context_data);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                addMessage('ai', `**Network Error:** ${error.message}`);
+            })
+            .finally(() => {
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                userInput.focus();
+            });
     }
 
-    sendButton.addEventListener('click', sendMessage);
+    // Expose functions to window for HTML onclick handlers
+    window.resetConversation = resetConversation;
 
-    userInput.addEventListener('keydown', function(event) {
+    window.showAbout = function () {
+        const aboutText = `### 🤖 Open Source Assistant
+**Version 2.0.0**
 
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            sendMessage();
-        }
-    });
+This AI-powered tool helps developers find their next open source contribution.
+
+**Tech Stack:**
+*   **LLM:** Llama 3.1 (via NVIDIA NIM)
+*   **Backend:** Flask (Python)
+*   **Frontend:** Vanilla JS + Custom CSS
+*   **Data:** GitHub API + Real-time Crawling
+
+**Features:**
+*   🔍 **Smart Search:** Find repos by language, topic, or difficulty.
+*   🃏 **Rich Cards:** View repository stats at a glance.
+*   🌙 **Dark Mode:** Easy on the eyes.
+
+*Built to empower the open source community.*`;
+        addMessage('ai', aboutText);
+    };
 
     resetButton.addEventListener('click', resetConversation);
-
-    suggestionButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            userInput.value = this.textContent;
-            userInput.dispatchEvent(new Event('input')); 
-            sendMessage();
-        });
-    });
-
     initializeConversation();
-
     userInput.focus();
 });

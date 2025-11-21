@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from marshmallow import Schema, fields, ValidationError
 import os
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -11,7 +11,6 @@ from operator import itemgetter
 from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.messages import HumanMessage, AIMessage
-import google.generativeai as genai
 import uuid
 from typing import Dict, Optional, List, Any
 import requests
@@ -36,9 +35,10 @@ except Exception:
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-genai.configure(api_key=GOOGLE_API_KEY)
 
 GITHUB_PER_PAGE = 25
 
@@ -62,12 +62,66 @@ chat_request_schema = ChatRequestSchema()
 
 class OpenSourceChat:
 	def __init__(self):
-		self.llm = ChatGoogleGenerativeAI(
-			model="gemini-2.5-flash-lite",
-			google_api_key=GOOGLE_API_KEY,
-			temperature=0.7,
-			convert_system_message_to_human=True
-		)
+		# Custom NVIDIA NIM API implementation using requests
+		self.nvidia_api_key = NVIDIA_API_KEY
+		self.nvidia_model = "meta/llama-3.1-8b-instruct"  # NVIDIA NIM model
+		
+		# LLM wrapper for compatibility
+		class NVIDIALLM:
+			def __init__(self, api_key, model):
+				self.api_key = api_key
+				self.model = model
+				
+			def invoke(self, messages):
+				# Convert messages to NVIDIA format
+				formatted_messages = []
+				for msg in messages:
+					if isinstance(msg, dict):
+						formatted_messages.append(msg)
+					else:
+						# Handle langchain message objects
+						role = "system" if hasattr(msg, 'type') and msg.type == "system" else "user"
+						content = msg.content if hasattr(msg, 'content') else str(msg)
+						formatted_messages.append({"role": role, "content": content})
+				
+				try:
+					print(f"[NVIDIA] Calling API with model: {self.model}")
+					# Call NVIDIA NIM API
+					response = requests.post(
+						f"https://integrate.api.nvidia.com/v1/chat/completions",
+						headers={
+							"Authorization": f"Bearer {self.api_key}",
+							"Content-Type": "application/json"
+						},
+						json={
+							"model": self.model,
+							"messages": formatted_messages,
+							"temperature": 0.7,
+							"max_tokens": 1024,
+							"stream": False
+						},
+						timeout=30
+					)
+					
+					if response.status_code != 200:
+						print(f"[NVIDIA] Error: Status {response.status_code}")
+						print(f"[NVIDIA] Response: {response.text}")
+					
+					response.raise_for_status()
+					result = response.json()
+					print(f"[NVIDIA] Success! Got response")
+					
+					# Return a response object compatible with langchain
+					class Response:
+						def __init__(self, content):
+							self.content = content
+					
+					return Response(result['choices'][0]['message']['content'])
+				except Exception as e:
+					print(f"[NVIDIA] Exception: {str(e)}")
+					raise
+		
+		self.llm = NVIDIALLM(self.nvidia_api_key, self.nvidia_model)
 		# Prefer FastEmbed (lightweight, no external quota). Fallback to Google embeddings.
 		self.embeddings = None
 		if _FASTEMBED_AVAILABLE:
