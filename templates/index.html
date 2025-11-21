@@ -3,7 +3,19 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover, user-scalable=yes">
+    <meta name="description" content="Your AI guide to open source contributions">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- iOS Specific -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="OS Assistant">
+
+    <!-- Android Specific -->
+    <meta name="mobile-web-app-capable" content="yes">
+
     <title>Open Source Assistant</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/styles.css">
@@ -12,6 +24,7 @@
 
 <body>
     <div class="app-layout">
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="logo-area">
@@ -65,7 +78,11 @@
         <main class="main-content">
             <header class="top-header">
                 <button class="icon-btn mobile-menu-btn" onclick="toggleSidebar()">
-                    <i class="fas fa-bars"></i>
+                    <div class="hamburger-icon">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
                 </button>
 
                 <div class="header-actions">
@@ -119,12 +136,12 @@
         }
 
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+            document.body.classList.toggle('sidebar-open');
         }
 
         function handleNav(type) {
             // Close sidebar on mobile
-            document.getElementById('sidebar').classList.remove('open');
+            document.body.classList.remove('sidebar-open');
 
             // Update active state
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));

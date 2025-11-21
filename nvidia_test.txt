@@ -1,0 +1,49 @@
+C:\Users\shrey\AppData\Local\Programs\Python\Python314\Lib\site-packages\langchain_core\_api\deprecation.py:27: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1.fields import FieldInfo as FieldInfoV1
+None of PyTorch, TensorFlow >= 2.0, or Flax have been found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+============================================================
+LLM INITIALIZATION TEST
+============================================================
+
+API Keys Status:
+  NVIDIA_API_KEY: [SET]
+  GOOGLE_API_KEY: [SET]
+  OPENAI_API_KEY: [NOT SET]
+
+------------------------------------------------------------
+Testing NVIDIA LLM...
+------------------------------------------------------------
+
+[1] Initializing NVIDIA ChatNVIDIA...
+Traceback (most recent call last):
+  File "C:\Users\shrey\.gemini\antigravity\scratch\open-source-assistant\test_nvidia_llm.py", line 28, in <module>
+    llm = ChatNVIDIA(
+        model="meta/llama-3.1-8b-instruct",
+        api_key=NVIDIA_API_KEY,
+        temperature=0.7,
+    )
+  File "C:\Users\shrey\AppData\Local\Programs\Python\Python314\Lib\site-packages\langchain_nvidia_ai_endpoints\chat_models.py", line 417, in __init__
+    super().__init__(**kwargs)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\shrey\AppData\Local\Programs\Python\Python314\Lib\site-packages\langchain_core\load\serializable.py", line 115, in __init__
+    super().__init__(*args, **kwargs)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\shrey\AppData\Local\Programs\Python\Python314\Lib\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+  File "C:\Users\shrey\AppData\Local\Programs\Python\Python314\Lib\site-packages\langchain_core\language_models\base.py", line 108, in _get_verbosity
+    return get_verbose()
+  File "C:\Users\shrey\AppData\Local\Programs\Python\Python314\Lib\site-packages\langchain_core\globals.py", line 86, in get_verbose
+    old_verbose = langchain.verbose
+                  ^^^^^^^^^^^^^^^^^
+AttributeError: module 'langchain' has no attribute 'verbose'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\shrey\.gemini\antigravity\scratch\open-source-assistant\test_nvidia_llm.py", line 49, in <module>
+    print(f"\n\u2717 ERROR: {str(e)}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shrey\AppData\Local\Programs\Python\Python314\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2717' in position 2: character maps to <undefined>
