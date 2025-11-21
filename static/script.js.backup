@@ -1,0 +1,230 @@
+document.addEventListener('DOMContentLoaded', function () {
+    const chatMessages = document.getElementById('chat-messages');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-btn');
+    const resetButton = document.getElementById('reset-btn');
+    const themeToggle = document.getElementById('theme-toggle');
+    const chatViewport = document.getElementById('chat-viewport');
+
+    // Theme Handling
+    let isDark = localStorage.getItem('theme') === 'dark';
+    applyTheme(isDark);
+
+    themeToggle.addEventListener('click', () => {
+        isDark = !isDark;
+        applyTheme(isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    function applyTheme(dark) {
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        themeToggle.innerHTML = dark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    }
+
+    // Auto-resize textarea
+    userInput.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        if (this.value === '') this.style.height = '56px';
+    });
+
+    let conversationId = null;
+
+    function initializeConversation() {
+        fetch('/start-conversation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    conversationId = data.conversation_id;
+                }
+            })
+            .catch(console.error);
+    }
+
+    function resetConversation() {
+        const originalIcon = resetButton.innerHTML;
+        resetButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        fetch('/api/reset', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    chatMessages.innerHTML = `
+                    <div class="message-row ai">
+                        <div class="avatar ai"><i class="fas fa-robot"></i></div>
+                        <div class="message-bubble">
+                            <p>Chat reset. How can I help you now?</p>
+                        </div>
+                    </div>`;
+                    initializeConversation();
+                }
+            })
+            .finally(() => {
+                resetButton.innerHTML = originalIcon;
+            });
+    }
+
+    function addMessage(sender, text, contextData = null) {
+        const row = document.createElement('div');
+        row.className = `message-row ${sender === 'user' ? 'user' : 'ai'}`;
+
+        const avatar = document.createElement('div');
+        avatar.className = `avatar ${sender === 'user' ? 'user' : 'ai'}`;
+        avatar.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+
+        // Parse Markdown
+        bubble.innerHTML = marked.parse(text);
+
+        // Render Rich Cards if available
+        if (contextData && contextData.repositories && contextData.repositories.length > 0) {
+            const grid = document.createElement('div');
+            grid.className = 'repo-grid';
+
+            contextData.repositories.slice(0, 4).forEach(repo => {
+                const card = document.createElement('a');
+                card.className = 'repo-card';
+                card.href = repo.url;
+                card.target = '_blank';
+                card.innerHTML = `
+                    <div class="repo-header">
+                        <div class="repo-name">${repo.name}</div>
+                        <div class="repo-stars"><i class="fas fa-star"></i> ${repo.stars}</div>
+                    </div>
+                    <div class="repo-desc">${repo.description || 'No description available.'}</div>
+                    <div class="repo-meta">
+                        <span><i class="fas fa-circle" style="font-size: 8px; color: ${getLangColor(repo.language)}"></i> ${repo.language || 'Unknown'}</span>
+                        <span><i class="fas fa-exclamation-circle"></i> ${repo.open_issues_count} issues</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            bubble.appendChild(grid);
+        }
+
+        // Make links open in new tab
+        bubble.querySelectorAll('a').forEach(a => {
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+        });
+
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+        chatMessages.appendChild(row);
+
+        chatViewport.scrollTop = chatViewport.scrollHeight;
+    }
+
+    function getLangColor(lang) {
+        const colors = {
+            'Python': '#3572A5', 'JavaScript': '#f1e05a', 'TypeScript': '#2b7489',
+            'Java': '#b07219', 'Go': '#00ADD8', 'Rust': '#dea584', 'C++': '#f34b7d'
+        };
+        return colors[lang] || '#8b949e';
+    }
+
+    function showLoading() {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'loading-indicator';
+        loadingDiv.className = 'message-row ai';
+        loadingDiv.innerHTML = `
+            <div class="avatar ai"><i class="fas fa-robot"></i></div>
+            <div class="message-bubble">
+                <div style="display: flex; gap: 4px; align-items: center; color: var(--text-tertiary);">
+                    <i class="fas fa-circle-notch fa-spin"></i> Thinking...
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(loadingDiv);
+        chatViewport.scrollTop = chatViewport.scrollHeight;
+    }
+
+    function hideLoading() {
+        const loadingDiv = document.getElementById('loading-indicator');
+        if (loadingDiv) loadingDiv.remove();
+    }
+
+    window.sendMessage = function () {
+        const message = userInput.value.trim();
+        if (!message) return;
+
+        userInput.value = '';
+        userInput.style.height = '56px';
+        userInput.disabled = true;
+        sendButton.disabled = true;
+
+        addMessage('user', message);
+        showLoading();
+
+        if (!conversationId) {
+            initializeConversation();
+            setTimeout(() => sendRequest(message), 500);
+        } else {
+            sendRequest(message);
+        }
+    };
+
+    function sendRequest(message) {
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                conversation_id: conversationId,
+                question: message,
+                use_realtime: true
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.error) {
+                    addMessage('ai', `**Error:** ${data.error}`);
+                } else {
+                    // Pass context_data to addMessage to render cards
+                    addMessage('ai', data.answer, data.context_data);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                addMessage('ai', `**Network Error:** ${error.message}`);
+            })
+            .finally(() => {
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                userInput.focus();
+            });
+    }
+
+    // Expose functions to window for HTML onclick handlers
+    window.resetConversation = resetConversation;
+
+    window.showAbout = function () {
+        const aboutText = `### ≡ƒñû Open Source Assistant
+**Version 2.0.0**
+
+This AI-powered tool helps developers find their next open source contribution.
+
+**Tech Stack:**
+*   **LLM:** Llama 3.1 (via NVIDIA NIM)
+*   **Backend:** Flask (Python)
+*   **Frontend:** Vanilla JS + Custom CSS
+*   **Data:** GitHub API + Real-time Crawling
+
+**Features:**
+*   ≡ƒöì **Smart Search:** Find repos by language, topic, or difficulty.
+*   ≡ƒâÅ **Rich Cards:** View repository stats at a glance.
+*   ≡ƒîÖ **Dark Mode:** Easy on the eyes.
+
+*Built to empower the open source community.*`;
+        addMessage('ai', aboutText);
+    };
+
+    resetButton.addEventListener('click', resetConversation);
+    initializeConversation();
+    userInput.focus();
+});

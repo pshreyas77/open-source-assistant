@@ -42,6 +42,11 @@ class ChatRequestSchema(Schema):
     question = fields.Str(required=True)
     use_realtime = fields.Bool(missing=True)
 
+# Final fallback - dummy LLM
+class DummyLLM:
+    def invoke(self, _):
+        return "I cannot answer because no language model API key is configured."
+
 # Core chat handling class
 class OpenSourceChat:
     def __init__(self):
@@ -69,19 +74,23 @@ class OpenSourceChat:
                 print("[OK] Using NVIDIA LLM")
             except Exception as e:
                 print(f"NVIDIA LLM init error: {e}")
+                import traceback
+                traceback.print_exc()
         
         # Try Google Gemini as fallback
         if GOOGLE_API_KEY and not self.llm:
             try:
                 from langchain_google_genai import ChatGoogleGenerativeAI
                 self.llm = ChatGoogleGenerativeAI(
-                    model="gemini-1.5-pro",
+                    model="gemini-1.5-flash",
                     google_api_key=GOOGLE_API_KEY,
                     temperature=0.7,
                 )
                 print("[OK] Using Google Gemini LLM")
             except Exception as e:
                 print(f"Google LLM init error: {e}")
+                import traceback
+                traceback.print_exc()
 
         # Try OpenAI as second fallback
         if ChatOpenAI and OPENAI_API_KEY and not self.llm:
@@ -97,18 +106,16 @@ class OpenSourceChat:
 
         # Final fallback - dummy LLM
         if not self.llm:
-            class DummyLLM:
-                def invoke(self, _):
-                    return "I cannot answer because no language model API key is configured."
             self.llm = DummyLLM()
             print("[WARNING] Using Dummy LLM (no valid API keys)")
 
         # Helpers
-        self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len,
-        )
+        # After LLM initialization, report which LLM is active
+        if isinstance(self.llm, DummyLLM):
+            print('[WARN] Using DummyLLM – no API key configured')
+        else:
+            print(f'[INFO] LLM initialized: {self.llm.__class__.__name__}')
+
         self.message_history = ChatMessageHistory()
         self.vectorstore = None
         self.user_preferences = {

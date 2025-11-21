@@ -19,7 +19,14 @@
     <title>Open Source Assistant</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/cross-platform.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Prism.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
 </head>
 
 <body>
@@ -57,6 +64,12 @@
                     </button>
                     <button class="suggestion-btn" onclick="setInput('Find JavaScript projects')">
                         JavaScript
+                    </button>
+                    <button class="suggestion-btn" onclick="setInput('Find Node.js projects')">
+                        Node.js
+                    </button>
+                    <button class="suggestion-btn" onclick="setInput('Find MySQL projects')">
+                        MySQL
                     </button>
                     <button class="suggestion-btn" onclick="setInput('Show good first issues in react')">
                         React Issues
@@ -158,6 +171,7 @@
             }
         }
     </script>
+    <script src="/static/enhancements.js"></script>
 </body>
 
 </html>
