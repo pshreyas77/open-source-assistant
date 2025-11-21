@@ -4,7 +4,7 @@
 [![Flask](https://img.shields.io/badge/Flask-3.1.0-green.svg)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An intelligent AI-powered assistant designed to help developers discover, understand, and contribute to open source projects. Built with cutting-edge technologies including Google Gemini AI, LangChain, and advanced RAG (Retrieval-Augmented Generation) capabilities.
+An intelligent AI-powered assistant designed to help developers discover, understand, and contribute to open source projects. Built with cutting-edge technologies including **NVIDIA NIM (Llama 3.1)**, LangChain, and advanced RAG (Retrieval-Augmented Generation) capabilities.
 
 ## ✨ Features
 
@@ -33,7 +33,7 @@ An intelligent AI-powered assistant designed to help developers discover, unders
 
 ### 🧠 Machine Learning Powered
 - **Vector Store (FAISS)**: Semantic search through curated open source knowledge
-- **Multi-Model Support**: Google Gemini AI with fallback to FastEmbed for embeddings
+- **Multi-Model Support**: **NVIDIA NIM** with fallback to FastEmbed for embeddings
 - **RAG Pipeline**: Context-enhanced responses using LangChain
 - **Preference Learning**: Automatically extracts and learns from user queries
 
@@ -54,8 +54,8 @@ An intelligent AI-powered assistant designed to help developers discover, unders
          ├──────────────┬──────────────┬──────────────┐
          ▼              ▼              ▼              ▼
 ┌────────────┐  ┌────────────┐  ┌──────────┐  ┌──────────┐
-│  GitHub    │  │   Google   │  │  FAISS   │  │   Web    │
-│    API     │  │  Gemini AI │  │  Vector  │  │ Crawlers │
+│  GitHub    │  │   NVIDIA   │  │  FAISS   │  │   Web    │
+│    API     │  │    NIM     │  │  Vector  │  │ Crawlers │
 └────────────┘  └────────────┘  └──────────┘  └──────────┘
 ```
 
@@ -66,7 +66,7 @@ An intelligent AI-powered assistant designed to help developers discover, unders
 - Python 3.8 or higher
 - pip package manager
 - GitHub Personal Access Token
-- Google Gemini API Key
+- NVIDIA API Key
 
 ### Installation
 
@@ -96,12 +96,12 @@ pip install -r requirements.txt
 
 Create a `.env` file in the root directory:
 ```env
-GOOGLE_API_KEY=your_google_gemini_api_key_here
+NVIDIA_API_KEY=your_nvidia_api_key_here
 GITHUB_TOKEN=your_github_personal_access_token_here
 ```
 
 **Getting API Keys:**
-- **Google Gemini API**: Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+- **NVIDIA API**: Visit [NVIDIA NIM](https://build.nvidia.com/explore)
 - **GitHub Token**: Go to GitHub Settings → Developer Settings → Personal Access Tokens → Generate new token (classic)
   - Required scopes: `public_repo`, `read:org`, `read:user`
 
@@ -179,7 +179,7 @@ POST /api/reset
 - **Flask-CORS**: Cross-origin resource sharing support
 
 ### AI & Machine Learning
-- **Google Gemini (gemini-2.5-flash-lite)**: Large language model for conversational AI
+- **NVIDIA NIM (Llama 3.1)**: Large language model for conversational AI
 - **LangChain**: Framework for building LLM-powered applications
 - **FAISS**: Facebook AI Similarity Search for vector storage
 - **FastEmbed**: Lightweight embeddings (optional fallback)
@@ -257,7 +257,7 @@ Crawls and aggregates data from:
 
 ```env
 # Required
-GOOGLE_API_KEY=your_google_api_key
+NVIDIA_API_KEY=your_nvidia_api_key
 GITHUB_TOKEN=your_github_token
 
 # Optional
@@ -321,7 +321,7 @@ python app.py
 
 - **GitHub API Rate Limits**: Free tier allows 5,000 requests/hour (authenticated)
 - **Web Scraping Reliability**: Some sites may block or rate-limit scraping
-- **Embedding Quotas**: Google Gemini embeddings have daily quotas
+- **Embedding Quotas**: API quotas apply
 - **RAG Accuracy**: Vector search quality depends on knowledge base size
 
 ## 🔮 Future Enhancements
@@ -350,7 +350,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- [Google Gemini](https://ai.google.dev/) for providing powerful AI capabilities
+- [NVIDIA NIM](https://build.nvidia.com/) for providing powerful AI capabilities
 - [LangChain](https://www.langchain.com/) for the excellent RAG framework
 - [GitHub API](https://docs.github.com/en/rest) for comprehensive repository data
 - [FAISS](https://github.com/facebookresearch/faiss) by Facebook Research
