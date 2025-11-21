@@ -24,7 +24,7 @@ try:
         try:
             error_data = response.json()
             print(f"Error details: {json.dumps(error_data, indent=2)}")
-        except:
+        except Exception:
             print(f"Raw error: {response.text}")
             
 except requests.exceptions.ConnectionError:
