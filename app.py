@@ -62,66 +62,101 @@ chat_request_schema = ChatRequestSchema()
 
 class OpenSourceChat:
 	def __init__(self):
-		# Custom NVIDIA NIM API implementation using requests
-		self.nvidia_api_key = NVIDIA_API_KEY
-		self.nvidia_model = "meta/llama-3.1-8b-instruct"  # NVIDIA NIM model
+		# Custom API implementation using requests with fallback
+		self.nvidia_api_key = NVIDIA_API_KEY.strip() if NVIDIA_API_KEY else None
+		self.openrouter_api_key = OPENROUTER_API_KEY.strip() if OPENROUTER_API_KEY else None
+		
+		if not self.nvidia_api_key:
+			print("WARNING: NVIDIA_API_KEY is missing.")
+		else:
+			print(f"NVIDIA_API_KEY loaded (starts with: {self.nvidia_api_key[:5]}...)")
+
+		if not self.openrouter_api_key:
+			print("WARNING: OPENROUTER_API_KEY is missing.")
 		
 		# LLM wrapper for compatibility
-		class NVIDIALLM:
-			def __init__(self, api_key, model):
-				self.api_key = api_key
-				self.model = model
+		class CustomLLM:
+			def __init__(self, nvidia_key, openrouter_key):
+				self.nvidia_key = nvidia_key
+				self.openrouter_key = openrouter_key
+				self.nvidia_model = "meta/llama-3.1-8b-instruct"
+				self.openrouter_model = "meta-llama/llama-3.1-8b-instruct:free" # Use free tier if available, or standard
 				
 			def invoke(self, messages):
-				# Convert messages to NVIDIA format
+				# Convert messages to format
 				formatted_messages = []
 				for msg in messages:
 					if isinstance(msg, dict):
 						formatted_messages.append(msg)
 					else:
-						# Handle langchain message objects
 						role = "system" if hasattr(msg, 'type') and msg.type == "system" else "user"
 						content = msg.content if hasattr(msg, 'content') else str(msg)
 						formatted_messages.append({"role": role, "content": content})
 				
-				try:
-					print(f"[NVIDIA] Calling API with model: {self.model}")
-					# Call NVIDIA NIM API
-					response = requests.post(
-						f"https://integrate.api.nvidia.com/v1/chat/completions",
-						headers={
-							"Authorization": f"Bearer {self.api_key}",
-							"Content-Type": "application/json"
-						},
-						json={
-							"model": self.model,
-							"messages": formatted_messages,
-							"temperature": 0.7,
-							"max_tokens": 1024,
-							"stream": False
-						},
-						timeout=30
-					)
-					
-					if response.status_code != 200:
-						print(f"[NVIDIA] Error: Status {response.status_code}")
-						print(f"[NVIDIA] Response: {response.text}")
-					
-					response.raise_for_status()
-					result = response.json()
-					print(f"[NVIDIA] Success! Got response")
-					
-					# Return a response object compatible with langchain
-					class Response:
-						def __init__(self, content):
-							self.content = content
-					
-					return Response(result['choices'][0]['message']['content'])
-				except Exception as e:
-					print(f"[NVIDIA] Exception: {str(e)}")
-					raise
+				# Try NVIDIA first
+				if self.nvidia_key:
+					try:
+						print(f"[LLM] Trying NVIDIA API...")
+						response = requests.post(
+							"https://integrate.api.nvidia.com/v1/chat/completions",
+							headers={
+								"Authorization": f"Bearer {self.nvidia_key}",
+								"Content-Type": "application/json"
+							},
+							json={
+								"model": self.nvidia_model,
+								"messages": formatted_messages,
+								"temperature": 0.7,
+								"max_tokens": 1024,
+								"stream": False
+							},
+							timeout=30
+						)
+						
+						if response.status_code == 200:
+							result = response.json()
+							return self._create_response(result['choices'][0]['message']['content'])
+						else:
+							print(f"[LLM] NVIDIA Error: {response.status_code} - {response.text}")
+					except Exception as e:
+						print(f"[LLM] NVIDIA Exception: {str(e)}")
+
+				# Fallback to OpenRouter
+				if self.openrouter_key:
+					try:
+						print(f"[LLM] Falling back to OpenRouter...")
+						response = requests.post(
+							"https://openrouter.ai/api/v1/chat/completions",
+							headers={
+								"Authorization": f"Bearer {self.openrouter_key}",
+								"Content-Type": "application/json",
+								"HTTP-Referer": "https://github.com/opensource-assistant", 
+							},
+							json={
+								"model": "meta-llama/llama-3.1-8b-instruct",
+								"messages": formatted_messages,
+								"temperature": 0.7,
+								"max_tokens": 1024
+							},
+							timeout=30
+						)
+						
+						if response.status_code == 200:
+							result = response.json()
+							return self._create_response(result['choices'][0]['message']['content'])
+						else:
+							print(f"[LLM] OpenRouter Error: {response.status_code} - {response.text}")
+					except Exception as e:
+						print(f"[LLM] OpenRouter Exception: {str(e)}")
+				
+				raise Exception("All LLM providers failed")
+
+			def _create_response(self, content):
+				class Response:
+					def __init__(self, c): self.content = c
+				return Response(content)
 		
-		self.llm = NVIDIALLM(self.nvidia_api_key, self.nvidia_model)
+		self.llm = CustomLLM(self.nvidia_api_key, self.openrouter_api_key)
 		# Prefer FastEmbed (lightweight, no external quota). Fallback to Google embeddings.
 		self.embeddings = None
 		if _FASTEMBED_AVAILABLE:
