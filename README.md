@@ -4,108 +4,111 @@
 [![Flask](https://img.shields.io/badge/Flask-3.1.0-green.svg)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An intelligent AI-powered assistant designed to help developers discover, understand, and contribute to open source projects. Built with cutting-edge technologies including **NVIDIA NIM (Llama 3.1)**, LangChain, and advanced RAG (Retrieval-Augmented Generation) capabilities.
+An intelligent AI-powered assistant designed to help developers discover, understand, and contribute to open source projects. Built with Flask, LangChain, and multiple LLM providers including **NVIDIA NIM (Llama 3.1)**, Google Gemini, and OpenAI.
 
-## ✨ Features
+## ✨ Current Features
 
 ### 🤖 Intelligent Conversational AI
 - **Natural Language Understanding**: Ask questions about open source in plain English
-- **Context-Aware Responses**: Remembers conversation history and user preferences
-- **Personalized Recommendations**: Learns from your interests, programming languages, and skill level
+- **Context-Aware Responses**: Powered by state-of-the-art language models
+- **Multi-Model Support**: NVIDIA NIM (primary), with fallbacks to Google Gemini and OpenAI
+- **Flexible Architecture**: Graceful degradation if API keys are unavailable
 
-### 🔍 Real-Time Data Integration
-- **GitHub API Integration**: Live search for repositories, issues, and contribution guides
-- **Web Crawling**: Aggregates trending projects from GitHub, DEV.to, Reddit, and RSS feeds
-- **Stack Overflow Integration**: Finds relevant Q&A for repositories and topics
-- **Smart Caching**: Intelligent caching system to reduce API calls and improve performance
+### 🔍 GitHub Integration
+- **Repository Search**: Find projects by keywords and programming language
+- **Smart Filtering**: Sort by stars, language, and relevance
+- **Live Data**: Direct integration with GitHub API
+- **Contextual Recommendations**: Get repository suggestions within conversations
 
-### 🎯 Project Discovery
-- **Smart Repository Search**: Find projects matching your skills and interests
-- **Issue Finder**: Discover beginner-friendly issues labeled "good first issue" or "help wanted"
-- **Project Insights**: Get detailed statistics on commit frequency, PR merge rates, and community health
-- **Contribution Guides**: Automatically fetches and summarizes CONTRIBUTING.md files
-
-### 📊 Advanced Analytics
-- **Community Health Scores**: Evaluate project maintainability and responsiveness
-- **Technology Stack Analysis**: See what languages and frameworks projects use
-- **Activity Metrics**: Track commit frequency and PR response times
-- **Contributor Information**: View top contributors and their contribution counts
-
-### 🧠 Machine Learning Powered
-- **Vector Store (FAISS)**: Semantic search through curated open source knowledge
-- **Multi-Model Support**: **NVIDIA NIM** with fallback to FastEmbed for embeddings
-- **RAG Pipeline**: Context-enhanced responses using LangChain
-- **Preference Learning**: Automatically extracts and learns from user queries
+### 💬 Interactive Chat Interface
+- **Modern Web UI**: Clean, responsive design with dark theme
+- **Real-time Responses**: Fast AI-powered answers
+- **Conversation Management**: Reset and start new conversations
+- **Quick Actions**: Pre-built buttons for common queries (Beginner Guide, Python, JavaScript, Node.js, MySQL, React Issues)
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────┐
 │   Frontend      │
-│  (Templates)    │
+│  (HTML/CSS/JS)  │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐      ┌──────────────────┐
-│   Flask API     │◄────►│  LangChain       │
-│   (app.py)      │      │  RAG Pipeline    │
+│   Flask API     │◄────►│   LangChain      │
+│    (app.py)     │      │   Integration    │
 └────────┬────────┘      └──────────────────┘
          │
          ├──────────────┬──────────────┬──────────────┐
          ▼              ▼              ▼              ▼
-┌────────────┐  ┌────────────┐  ┌──────────┐  ┌──────────┐
-│  GitHub    │  │   NVIDIA   │  │  FAISS   │  │   Web    │
-│    API     │  │    NIM     │  │  Vector  │  │ Crawlers │
-└────────────┘  └────────────┘  └──────────┘  └──────────┘
+  ┌────────────┐ ┌────────────┐ ┌──────────┐ ┌──────────┐
+  │  GitHub    │ │  NVIDIA    │ │  Google  │ │ OpenAI   │
+  │    API     │ │    NIM     │ │  Gemini  │ │   GPT    │
+  └────────────┘ └────────────┘ └──────────┘ └──────────┘
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-
 - Python 3.8 or higher
 - pip package manager
-- GitHub Personal Access Token
-- NVIDIA API Key
+- GitHub Personal Access Token (required)
+- At least one LLM API key (NVIDIA, Google, or OpenAI)
 
 ### Installation
 
-1. **Clone the repository**
+**1. Clone the repository**
 ```bash
 git clone https://github.com/pshreyas77/open-source-assistant.git
 cd open-source-assistant
 ```
 
-2. **Create a virtual environment** (recommended)
+**2. Create a virtual environment** (recommended)
 ```bash
 python -m venv venv
 
 # On Windows
-venv\Scripts\activate
+venv\\Scripts\\activate
 
 # On macOS/Linux
 source venv/bin/activate
 ```
 
-3. **Install dependencies**
+**3. Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Set up environment variables**
+**4. Set up environment variables**
 
 Create a `.env` file in the root directory:
+
 ```env
+# NVIDIA NIM API Key (Primary LLM Provider)
 NVIDIA_API_KEY=your_nvidia_api_key_here
+
+# Google API Key (Fallback LLM + Embeddings)
+GOOGLE_API_KEY=your_google_api_key_here
+
+# OpenAI API Key (Secondary Fallback)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# OpenRouter API Key (Alternative Provider)
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+# GitHub Personal Access Token (Required)
 GITHUB_TOKEN=your_github_personal_access_token_here
 ```
 
 **Getting API Keys:**
-- **NVIDIA API**: Visit [NVIDIA NIM](https://build.nvidia.com/explore)
+- **NVIDIA API**: Visit [NVIDIA NIM](https://build.nvidia.com/explore) and create a free account
+- **Google API**: Get your key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+- **OpenAI API**: Sign up at [OpenAI Platform](https://platform.openai.com/api-keys)
 - **GitHub Token**: Go to GitHub Settings → Developer Settings → Personal Access Tokens → Generate new token (classic)
   - Required scopes: `public_repo`, `read:org`, `read:user`
 
-5. **Run the application**
+**5. Run the application**
 ```bash
 python app.py
 ```
@@ -118,57 +121,38 @@ The application will start on `http://localhost:5000`
 
 Navigate to `http://localhost:5000` in your browser and start asking questions:
 
-
+- "Find beginner-friendly Python projects"
+- "Show me JavaScript web development repositories"
+- "Recommend projects for machine learning"
+- "How do I make my first pull request?"
 
 ### API Endpoints
 
-The assistant provides a comprehensive REST API:
+#### Start Conversation
+```http
+POST /start-conversation
+```
+Returns a unique conversation ID.
 
-#### Chat Endpoint
-```bash
+#### Chat
+```http
 POST /api/chat
 Content-Type: application/json
 
 {
   "conversation_id": "unique-id",
   "question": "Find Python projects for beginners",
-  "use_realtime": true,
-  "force_refresh": false
+  "use_realtime": true
 }
 ```
 
-#### Repository Search
-```bash
-GET /api/search/repositories?query=machine+learning&language=python
-```
-
-#### Issue Search
-```bash
-GET /api/search/issues?repo=owner/repo-name
-```
-
-#### Contribution Guide
-```bash
-GET /api/contribution_guide?repo=owner/repo-name
-```
-
-#### Project Insights
-```bash
-GET /api/project_insights?repo=owner/repo-name
-```
-
-#### Trending Projects
-```bash
-GET /api/trending?topic=web+development&language=javascript
-```
-
-#### Stack Overflow Questions
-```bash
-GET /api/stackoverflow?repo=owner/repo-name
+#### Search Repositories
+```http
+GET /api/search?query=machine+learning&language=python
 ```
 
 #### Reset Conversation
-```bash
+```http
 POST /api/reset
 ```
 
@@ -179,23 +163,22 @@ POST /api/reset
 - **Flask-CORS**: Cross-origin resource sharing support
 
 ### AI & Machine Learning
-- **NVIDIA NIM (Llama 3.1)**: Large language model for conversational AI
-- **LangChain**: Framework for building LLM-powered applications
-- **FAISS**: Facebook AI Similarity Search for vector storage
-- **FastEmbed**: Lightweight embeddings (optional fallback)
+- **LangChain**: Framework for building LLM applications
+- **NVIDIA NIM (Llama 3.1)**: Primary language model
+- **Google Gemini**: Fallback LLM and embeddings provider
+- **OpenAI GPT**: Secondary fallback option
+- **Google Generative AI**: Embeddings (infrastructure ready)
 
-### Data Processing
-- **BeautifulSoup4**: Web scraping and HTML parsing
-- **Feedparser**: RSS feed parsing
+### Data & Validation
 - **Requests**: HTTP library for API calls
-
-### Validation & Schemas
 - **Marshmallow**: Object serialization and validation
 - **Pydantic**: Data validation using Python type annotations
-
-### Additional Tools
 - **Python-dotenv**: Environment variable management
-- **SQLAlchemy**: Database toolkit (for future extensions)
+
+### Additional Infrastructure
+- **FAISS**: Vector similarity search (infrastructure ready)
+- **SQLAlchemy**: Database toolkit (infrastructure ready)
+- **Gunicorn**: Production WSGI server for deployment
 
 ## 📁 Project Structure
 
@@ -204,80 +187,33 @@ open-source-assistant/
 ├── app.py                 # Main Flask application and API routes
 ├── requirements.txt       # Python dependencies
 ├── .env                   # Environment variables (create this)
+├── .env.example          # Environment variables template
 ├── .gitignore            # Git ignore rules
+├── Procfile              # Deployment configuration
 ├── static/               # Static assets (CSS, JS)
-│   └── ...
+│   ├── styles.css
+│   └── script.js
 ├── templates/            # HTML templates
 │   └── index.html        # Main web interface
 └── README.md             # This file
 ```
 
-## 🎯 Key Features Explained
+## 🎯 How It Works
 
-### Intelligent User Preference Learning
+### LLM Provider Chain
+The application tries LLM providers in this order:
+1. **NVIDIA NIM** (Llama 3.1) - If `NVIDIA_API_KEY` is set
+2. **Google Gemini** (gemini-1.5-flash) - If `GOOGLE_API_KEY` is set
+3. **OpenAI** (gpt-4o-mini) - If `OPENAI_API_KEY` is set
+4. **Dummy LLM** - Returns error message if no keys configured
 
-The assistant automatically learns from your questions:
-- **Programming Languages**: Detects mentions of Python, JavaScript, Java, etc.
-- **Interests**: Identifies topics like web dev, ML, DevOps, game dev
-- **Skill Level**: Adapts to beginner, intermediate, or advanced users
-- **Repository History**: Remembers previously discussed projects
-
-### Smart Caching System
-
-Implements three-tier caching:
-- **Repository Cache**: 30-minute TTL
-- **Issue Cache**: 15-minute TTL
-- **Guide Cache**: 60-minute TTL
-
-Benefits:
-- Reduces GitHub API rate limit consumption
-- Improves response times
-- Force refresh option available when needed
-
-### RAG (Retrieval-Augmented Generation)
-
-The system uses a curated knowledge base including:
-- Contribution workflow best practices
-- Recommended beginner-friendly repositories
-- Language-specific project suggestions
-- Open source etiquette and guidelines
-
-### Multi-Source Data Aggregation
-
-Crawls and aggregates data from:
-1. **GitHub Trending**: Real-time trending repositories
-2. **DEV.to**: Latest articles and tutorials
-3. **Reddit**: Community discussions (r/opensource, language subreddits)
-4. **RSS Feeds**: OpenSource.com, Changelog
-5. **Stack Overflow**: Relevant Q&A
-
-## 🔧 Configuration
-
-### Environment Variables
-
-```env
-# Required
-NVIDIA_API_KEY=your_nvidia_api_key
-GITHUB_TOKEN=your_github_token
-
-# Optional
-PORT=5000                    # Server port (default: 5000)
-DISABLE_RAG=false            # Disable RAG for constrained deployments
-```
-
-### Customizing Search Behavior
-
-Edit these constants in `app.py`:
-
-```python
-GITHUB_PER_PAGE = 25         # Results per page
-
-CACHE_CONFIG = {
-    "repo": {"expiry": 1800},   # 30 minutes
-    "issue": {"expiry": 900},   # 15 minutes
-    "guide": {"expiry": 3600},  # 60 minutes
-}
-```
+### Repository Search
+When you ask questions like "Find Python projects":
+1. System detects search intent from your query
+2. Extracts programming language if mentioned
+3. Calls GitHub API to search repositories
+4. LLM uses this context to provide intelligent recommendations
+5. Returns top 5 results with descriptions and star counts
 
 ## 🤝 Contributing
 
@@ -300,7 +236,6 @@ Contributions are welcome! Here's how you can help:
 6. **Open a Pull Request**
 
 ### Development Setup
-
 ```bash
 # Install dev dependencies
 pip install -r requirements.txt
@@ -311,31 +246,50 @@ python app.py
 ```
 
 ### Code Style
-
 - Follow PEP 8 guidelines
 - Use meaningful variable names
 - Add docstrings to functions
 - Comment complex logic
 
-## 🐛 Known Issues & Limitations
+## 🚧 Roadmap & Planned Features
 
-- **GitHub API Rate Limits**: Free tier allows 5,000 requests/hour (authenticated)
-- **Web Scraping Reliability**: Some sites may block or rate-limit scraping
-- **Embedding Quotas**: API quotas apply
-- **RAG Accuracy**: Vector search quality depends on knowledge base size
+The following features are planned for future releases:
 
-## 🔮 Future Enhancements
+### Phase 1: Enhanced Search & Discovery
+- [ ] Issue search by repository
+- [ ] Contribution guide fetching (CONTRIBUTING.md)
+- [ ] Project insights (commit frequency, PR merge rates)
+- [ ] Beginner-friendly issue filtering
 
+### Phase 2: RAG & Knowledge Base
+- [ ] FAISS vector store implementation
+- [ ] RAG pipeline for context-enhanced responses
+- [ ] Curated knowledge base of contribution workflows
+- [ ] Semantic search capabilities
+
+### Phase 3: Multi-Source Data
+- [ ] Web crawling (DEV.to, Reddit, RSS feeds)
+- [ ] Stack Overflow integration
+- [ ] Trending projects aggregation
+- [ ] Community health scores
+
+### Phase 4: Advanced Features
+- [ ] Smart caching system (repository, issue, guide caches)
+- [ ] User preference learning
+- [ ] Persistent storage (PostgreSQL/MongoDB)
 - [ ] User authentication and personalized dashboards
-- [ ] Persistent storage for user preferences (PostgreSQL/MongoDB)
 - [ ] GitLab and Bitbucket support
-- [ ] Integration with Discord/Slack bots
-- [ ] Advanced filtering (CI/CD status, test coverage)
-- [ ] Contribution tracking and gamification
+- [ ] Discord/Slack bot integration
 - [ ] Multi-language support (i18n)
 - [ ] Code review assistance
 - [ ] PR template generation
-- [ ] Repository health scoring algorithm
+
+## 🐛 Known Limitations
+
+- **GitHub API Rate Limits**: Free tier allows 5,000 requests/hour (authenticated), 60/hour (unauthenticated)
+- **LLM API Quotas**: Each provider has their own rate limits and quotas
+- **No Persistence**: Conversations are not stored between sessions
+- **Basic Search**: Currently only searches repositories by keyword and language
 
 ## 📄 License
 
@@ -346,28 +300,28 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Shreyas P**
 - GitHub: [@pshreyas77](https://github.com/pshreyas77)
 - Project Link: [https://github.com/pshreyas77/open-source-assistant](https://github.com/pshreyas77/open-source-assistant)
-- Website: [open-source-assistant.onrender.com](https://open-source-assistant.onrender.com)
+- Live Demo: [open-source-assistant.onrender.com](https://open-source-assistant.onrender.com/)
 
 ## 🙏 Acknowledgments
 
 - [NVIDIA NIM](https://build.nvidia.com/) for providing powerful AI capabilities
-- [LangChain](https://www.langchain.com/) for the excellent RAG framework
+- [LangChain](https://www.langchain.com/) for the excellent LLM framework
 - [GitHub API](https://docs.github.com/en/rest) for comprehensive repository data
-- [FAISS](https://github.com/facebookresearch/faiss) by Facebook Research
+- [Google Gemini](https://ai.google.dev/) for AI capabilities
+- [OpenAI](https://openai.com/) for GPT models
 - Open source community for inspiration and support
 
 ## 📞 Support
 
 If you encounter any issues or have questions:
-
 1. Check the [Issues](https://github.com/pshreyas77/open-source-assistant/issues) page
 2. Create a new issue with detailed information
 3. Reach out via GitHub Discussions
 
-## ⭐ Star History
+## ⭐ Star This Project
 
 If you find this project useful, please consider giving it a star! It helps others discover the project.
 
 ---
 
-**Made with ❤️ by developers, for developers**
+**Made with ❤️ for the open source community**
