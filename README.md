@@ -48,6 +48,8 @@ An intelligent AI-powered assistant designed to help developers discover, unders
   └────────────┘ └────────────┘ └──────────┘
 ```  └────────────┘ └────────────┘ └──────────┘ └──────────┘
 ```
+<img width="1919" height="904" alt="image" src="https://github.com/user-attachments/assets/2c0d9d51-b763-496c-8b42-99b37674a9cd" />
+
 
 ## 🚀 Getting Started
 
