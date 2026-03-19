@@ -331,4 +331,11 @@ If you find this project useful, please consider giving it a star! It helps othe
 
 ---
 
+## Roadmap
+
+- [ ] Add support for additional LLM providers (Anthropic Claude, Mistral)
+- [ ] Implement caching for API responses
+- [ ] Add web interface with chat UI
+- [ ] Support for code review and PR suggestions
+
 **Made with ❤️ for the open source community**
