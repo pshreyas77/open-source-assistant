@@ -323,6 +323,12 @@ If you encounter any issues or have questions:
 
 If you find this project useful, please consider giving it a star! It helps others discover the project.
 
+
+## Changelog
+
+- **v0.2.0**: Added support for multiple LLM providers and enhanced conversation context
+- **v0.1.0**: Initial release with core repository search and filtering features
+
 ---
 
 **Made with ❤️ for the open source community**
