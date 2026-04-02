@@ -4,7 +4,14 @@
 [![Flask](https://img.shields.io/badge/Flask-3.1.0-green.svg)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An intelligent AI-powered assistant designed to help developers discover, understand, and contribute to open source projects. Built with Flask, LangChain, and multiple LLM providers including **NVIDIA NIM (Llama 3.1)**, Google Gemini, and OpenAI.
+An intelligent AI-powered assistant designed to help developers discover, understand, and contribute to open source projects. Built with Flask, LangChain, and multiple LLM providers including **NVIDIA NIM (Llama 3.1)**, Google Gemini, and OpenAI
+
+## Planned Features
+
+- **Multi-LLM Provider Support**: Integration with GPT-4, Claude, and Gemini APIs
+- **Enhanced Model Switching**: Seamless transitions between different LLM backends
+- **Cost Optimization**: Intelligent routing to balance performance and API costs
+.
 
 ## ✨ Current Features
 
